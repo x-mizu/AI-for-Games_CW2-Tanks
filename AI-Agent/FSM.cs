@@ -100,6 +100,7 @@ namespace GridWorld
             {
                 bInBattle = false;
                 TargetTankSquare = null;
+                MyCommand = null;
                 ShootCount = 0;
             }
                
@@ -211,7 +212,84 @@ namespace GridWorld
             // if the tanks are not aligned
             if (deltaX != 0 && deltaY != 0)
             {
-                
+                if (deltaX == 1)
+                {
+                    if ( (deltaY > 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Up) ||
+                         (deltaY < 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Down) )
+                    {
+                        MyCommand = new Command(Command.Move.Right, true);
+                        return;
+                    }
+                    else if (deltaY > 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Right)
+                    {
+                        MyCommand = new Command(Command.Move.RotateLeft, true);
+                        return;
+                    }
+                    else if (deltaY < 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Right)
+                    {
+                        MyCommand = new Command(Command.Move.RotateRight, true);
+                        return;
+                    }
+                }
+                else if (deltaX == -1)
+                {
+                    if ((deltaY > 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Up) ||
+                         (deltaY < 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Down))
+                    {
+                        MyCommand = new Command(Command.Move.Left, true);
+                        return;
+                    }
+                    else if (deltaY > 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Left)
+                    {
+                        MyCommand = new Command(Command.Move.RotateRight, true);
+                        return;
+                    }
+                    else if (deltaY < 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Left)
+                    {
+                        MyCommand = new Command(Command.Move.RotateLeft, true);
+                        return;
+                        
+                    }
+                }
+
+                if (deltaY == 1)
+                {
+                    if ((deltaX > 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Right) ||
+                         (deltaX < 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Left))
+                    {
+                        MyCommand = new Command(Command.Move.Up, true);
+                        return;
+                    }
+                    else if (deltaX > 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Up)
+                    {
+                        MyCommand = new Command(Command.Move.RotateRight, true);
+                        return;
+                    }
+                    else if (deltaX < 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Up)
+                    {
+                        MyCommand = new Command(Command.Move.RotateLeft, true);
+                        return;
+                    }
+                }
+                else if (deltaY == -1)
+                {
+                    if ((deltaX > 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Right) ||
+                         (deltaX < 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Left))
+                    {
+                        MyCommand = new Command(Command.Move.Down, true);
+                        return;
+                    }
+                    else if (deltaX > 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Down)
+                    {
+                        MyCommand = new Command(Command.Move.RotateLeft, true);
+                        return;
+                    }
+                    else if (deltaX < 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Down)
+                    {
+                        MyCommand = new Command(Command.Move.RotateRight, true);
+                        return;
+                    }
+                }
             }
             
             return;
@@ -290,30 +368,28 @@ namespace GridWorld
                         int deltaX = square.X - MyWorldState.MyGridSquare.X;
                         int deltaY = square.Y - MyWorldState.MyGridSquare.Y;
 
-                        if (deltaX == 0 || deltaY == 0)
-                        {
-                            bool reachable = false;
+                        bool reachable = false;
 
-                            if (deltaX == 0)
-                            {
-                                if (deltaY > 0)
-                                    reachable = CheckIfEnemyIsReachable(MyWorldState.MyGridSquare.Y, square.Y, square.X, false);
-                                if (deltaY < 0)
-                                    reachable = CheckIfEnemyIsReachable(square.Y, MyWorldState.MyGridSquare.Y, square.X, false);
-                            }
-                            if (deltaY == 0)
-                            {
-                                if (deltaX > 0)
-                                    reachable = CheckIfEnemyIsReachable(MyWorldState.MyGridSquare.X, square.X, square.Y, true);
-                                if (deltaX < 0)
-                                    reachable = CheckIfEnemyIsReachable(square.X, MyWorldState.MyGridSquare.X, square.Y, true);
-                            }
-                            if (reachable)
-                            {
-                                TargetTankSquare = square;
-                                return true;
-                            }
+                        if (deltaX == 0 ||  deltaX == 1 || deltaX == -1 )
+                        {
+                            if (deltaY > 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Up)
+                                reachable = CheckIfEnemyIsReachable(MyWorldState.MyGridSquare.Y, square.Y, square.X, false);
+                            if (deltaY < 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Down)
+                                reachable = CheckIfEnemyIsReachable(square.Y, MyWorldState.MyGridSquare.Y, square.X, false);
                         }
+                        if (deltaY == 0 || deltaY == 1 || deltaY == -1)
+                        {
+                            if (deltaX > 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Right)
+                                reachable = CheckIfEnemyIsReachable(MyWorldState.MyGridSquare.X, square.X, square.Y, true);
+                            if (deltaX < 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Left)
+                                reachable = CheckIfEnemyIsReachable(square.X, MyWorldState.MyGridSquare.X, square.Y, true);
+                        }
+                        if (reachable)
+                        {
+                            TargetTankSquare = square;
+                            return true;
+                        }
+                        
                     }
                 }
             }
@@ -328,14 +404,14 @@ namespace GridWorld
         {
             if (directionX)
             {
-                for (int x = x1 + 1; x < x2; x++)
-                    if (MyMap[x, y].IsBlocked)
+                for (int x = x1; x <= x2; x++)
+                    if (MyMap[x, y].IsBlocked && MyMap[x,y].GridSq.Player == 0)
                         return false;
             }
             else
             {
-                for (int x = x1 + 1; x < x2; x++)
-                    if (MyMap[y, x].IsBlocked)
+                for (int x = x1; x <= x2; x++)
+                    if (MyMap[y, x].IsBlocked && MyMap[x, y].GridSq.Player == 0)
                         return false;
             }
             
@@ -346,20 +422,20 @@ namespace GridWorld
         /// <summary>
         /// Get Neighbours of an square.
         /// </summary>
-        private List<GridSquare> GetNeighbours(int x, int y)
+        private List<GridSquare> GetReachableNeighbours(int x, int y)
         {
             List<GridSquare> Neighbours = new List<GridSquare>();
 
-            if (y + 1 < MyWorldState.GridHeightInSquares)
+            if (y + 1 < MyWorldState.GridHeightInSquares && MyMap[x, y + 1].IsBlocked == false)
                 Neighbours.Add(MyMap[x, y + 1].GridSq); // Up
 
-            if (y - 1 >= 0)
+            if (y - 1 >= 0 && MyMap[x, y - 1].IsBlocked == false)
                 Neighbours.Add(MyMap[x, y - 1].GridSq); // Down
 
-            if (x + 1 < MyWorldState.GridWidthInSquares)
+            if (x + 1 < MyWorldState.GridWidthInSquares && MyMap[x + 1, y].IsBlocked == false)
                 Neighbours.Add(MyMap[x + 1, y].GridSq); // Right
 
-            if (x - 1 >= 0)
+            if (x - 1 >= 0 && MyMap[x - 1, y].IsBlocked == false)
                 Neighbours.Add(MyMap[x - 1, y].GridSq); // Left
 
             return Neighbours;
