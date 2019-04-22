@@ -57,6 +57,16 @@ namespace GridWorld
         private int KillCount = 0;
 
         /// <summary>
+        /// Variable that keep shoot count.
+        /// </summary>
+        private int ShootCount = 0;
+
+        /// <summary>
+        /// Variable that keep shoot count.
+        /// </summary>
+        private int MaxShootTimes = 5;
+
+        /// <summary>
         /// The state our tank is currently in. It starts in the Explore state.
         /// </summary>
         FSMState CurrentState = FSMState.Explore;
@@ -86,10 +96,11 @@ namespace GridWorld
             }
 
             // if in battle and the target is destroyed, leave Battle state
-            if (bInBattle && KillCount < MyWorldState.Kills)
+            if (bInBattle && (KillCount < MyWorldState.Kills || ShootCount >= MaxShootTimes))
             {
                 bInBattle = false;
                 TargetTankSquare = null;
+                ShootCount = 0;
             }
                
             
@@ -103,6 +114,9 @@ namespace GridWorld
             // if not in battle, gets the comand stored in the A* object
             if (!bInBattle)
                 return aStar.MyCommand;
+
+            // add to the shoot count to keep track how many times the agent shot
+            ShootCount++;
 
             // return the command when in Battle state
             return MyCommand;
