@@ -7,7 +7,7 @@ namespace GridWorld
     class FSM
     {
         /// <summary>
-        /// Our very simple sample Tank AI has only two states. Add any new states in here.
+        /// This Tank AI has two states.
         /// </summary>
         public enum FSMState { Explore, Battle };
 
@@ -17,7 +17,7 @@ namespace GridWorld
         PlayerWorldState MyWorldState;
 
         /// <summary>
-        /// The map of all permanent objects in grid squares seen (i.e. ignore tanks unless they have been destroyed). Unseen GridSquares are null.
+        /// The map of all objects in grid squares seen. Unseen GridSquares are null.
         /// </summary>
         PathSquare[,] MyMap = null;
 
@@ -32,7 +32,7 @@ namespace GridWorld
         private PathSquare TargetSquare = null;
 
         /// <summary>
-        /// The square where my enemy tank is.
+        /// The square where target enemy tank is.
         /// </summary>
         private GridSquare TargetTankSquare = null;
 
@@ -41,17 +41,29 @@ namespace GridWorld
         /// </summary>
         public Command MyCommand;
 
+        /// <summary>
+        /// Varaible to indicate the first round.
+        /// </summary>
         private bool bInit = false;
 
+        /// <summary>
+        /// Variable that indicates if the agent is in a battle.
+        /// </summary>
         private bool bInBattle = false;
 
+        /// <summary>
+        /// Variable that keep kill count.
+        /// </summary>
         private int KillCount = 0;
 
         /// <summary>
-        /// The state our tank is currently in. It starts in the FindNewUnseenSquare state.
+        /// The state our tank is currently in. It starts in the Explore state.
         /// </summary>
         FSMState CurrentState = FSMState.Explore;
 
+        /// <summary>
+        /// Constructor, get a new instance of the A* class.
+        /// </summary>
         public FSM()
         {
             aStar = new AStar();
@@ -66,13 +78,15 @@ namespace GridWorld
             this.MyMap = map;
             aStar.Initialize(pws, map);
 
+            // if is the first round, finds an unseen square to go to
             if (!bInit)
             {
                 bInit = true;
                 FindUnseenSquare();
             }
 
-            if (KillCount < MyWorldState.Kills)
+            // if in battle and the target is destroyed, leave Battle state
+            if (bInBattle && KillCount < MyWorldState.Kills)
             {
                 bInBattle = false;
                 TargetTankSquare = null;
@@ -86,23 +100,26 @@ namespace GridWorld
         /// </summary>
         public Command GetCommand()
         {
+            // if not in battle, gets the comand stored in the A* object
             if (!bInBattle)
                 return aStar.MyCommand;
 
+            // return the command when in Battle state
             return MyCommand;
         }
 
         /// <summary>
-        /// Call the function associated with state. Add any new states in here.
+        /// Call the function associated with state.
         /// </summary>
         public void DoState()
         {
+            // if there is an enemy in sight or if the tank is in Battle --> Battle State
             if (EnemyInSight() || bInBattle)
                 CurrentState = FSMState.Battle;
             else
                 CurrentState = FSMState.Explore;
 
-
+            
             switch (CurrentState)
             {
                 case FSMState.Explore:
@@ -117,17 +134,21 @@ namespace GridWorld
         }
 
         /// <summary>
-        /// Find any unseen GridSquare. NOT very scientific.
+        /// Logic for the battle state.
         /// </summary>
-        /// <returns></returns>
         private void Battle()
         {
+            // saves current kill count
             KillCount = MyWorldState.Kills;
 
+            // sets variable indicating that the tank is in Battle State
             bInBattle = true;
+
+            // get difference between positions
             int deltaX = TargetTankSquare.X - MyWorldState.MyGridSquare.X;
             int deltaY = TargetTankSquare.Y - MyWorldState.MyGridSquare.Y;
 
+            // if the enemy tank and the agent are in the X axis (horizontal align)
             if (deltaX == 0)
             {
                 if ( (deltaY > 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Up) ||
@@ -150,6 +171,7 @@ namespace GridWorld
                 }
             }
 
+            // if the enemy tank and the agent are in the Y axis (vertial align)
             if (deltaY == 0)
             {
                 if ((deltaX > 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Right) ||
@@ -172,6 +194,7 @@ namespace GridWorld
                 }
             }
 
+            // if the tanks are not aligned
             if (deltaX != 0 && deltaY != 0)
             {
                 
@@ -181,37 +204,46 @@ namespace GridWorld
         }
 
         /// <summary>
-        /// Issue a command for my tank to move towards the unseen square. NOT very scientific.
+        /// Logic for the Explore State.
         /// </summary>
         private void Explore()
         {
-            
+            // if the target square has been seen, find a new enseen square
             if (MyMap[TargetSquare.X, TargetSquare.Y].HasBeenSeen)
             {
-                // TargetUnseenSquare has been seen
-                FindUnseenSquare(); // so change state to find a new unseen square
+                FindUnseenSquare();
                 return;
             }
-
+            
             if (!aStar.MoveAlongMyPath()) // try to move along the path
             {
                 // some problem with the path
-                FindUnseenSquare(); // so change state to find a new unseen square
+                FindUnseenSquare(); // so find a new unseen square
                 return;
             }
            
         }
 
+        /// <summary>
+        /// Finds a new unseen square. Gets all the unseen squares and choose one randomly.
+        /// </summary>
         private void FindUnseenSquare()
         {
+            List<PathSquare> SquaresNotSeen = new List<PathSquare>();
+
             foreach (var square in MyMap)
                 if (MyMap[square.X, square.Y].HasBeenSeen == false)
-                {
-                    FindAndMoveAlongPath(MyWorldState.MyGridSquare.X, MyWorldState.MyGridSquare.Y, square.X, square.Y);
-                    return;
-                }
+                    SquaresNotSeen.Add(square);
+                
+
+            PathSquare Location = SquaresNotSeen[new Random().Next(SquaresNotSeen.Count)];
+
+            FindAndMoveAlongPath(MyWorldState.MyGridSquare.X, MyWorldState.MyGridSquare.Y, Location.X, Location.Y);
         }
 
+        /// <summary>
+        /// Finds a path to the destination square and set the A* object to move along that path.
+        /// </summary>
         private void FindAndMoveAlongPath(int x1, int y1, int x2, int y2)
         {
             aStar.MyPath = aStar.FindPath(x1, y1, x2, y2); // find a path
@@ -224,6 +256,9 @@ namespace GridWorld
             }
         }
 
+        /// <summary>
+        /// Checks if an enemy is in line of sight of the Agent. Only considers vertical and horizontal alignments.
+        /// </summary>
         private bool EnemyInSight()
         {
             foreach (var square in MyWorldState.MyVisibleSquares)
@@ -272,6 +307,9 @@ namespace GridWorld
             return false;
         }
 
+        /// <summary>
+        /// Checks if the square is directly reachable.
+        /// </summary>
         private bool CheckIfEnemyIsReachable(int x1, int x2, int y, bool directionX)
         {
             if (directionX)
@@ -291,6 +329,9 @@ namespace GridWorld
             return true;
         }
 
+        /// <summary>
+        /// Get Neighbours of an square.
+        /// </summary>
         private List<GridSquare> GetNeighbours(int x, int y)
         {
             List<GridSquare> Neighbours = new List<GridSquare>();

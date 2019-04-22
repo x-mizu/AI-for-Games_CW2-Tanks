@@ -5,13 +5,13 @@ namespace GridWorld
     /// This is a player that uses a Finite State Machine (FSM)
     /// with two states to control a Tank.
     /// 
-    /// It starts in the FindNewAction(Find) state. The state diagram is:
+    /// It starts in the Explore() state. The state diagram is:
     ///                   
-    ///                  (x,y) found
-    ///  FindNewAction -------}-------  DoAction                          
+    ///                  Enemy destroyed
+    ///     Battle -----------}--------- Explore                          
     ///        |                            |
     ///         --------------{-------------
-    ///                   (x,y) seen
+    ///                   Enemy seen
     /// 
     /// It uses A* search to plot a path to the unseen square.
     /// 
