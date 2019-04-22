@@ -1,3 +1,4 @@
+// AI Agent - Tanks - Version 2.0 - Matheus Shimizu Felisberto
 
 namespace GridWorld
 {
