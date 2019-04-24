@@ -291,7 +291,9 @@ namespace GridWorld
                     }
                 }
             }
-            
+
+            bInBattle = false;
+
             return;
         }
 
@@ -327,10 +329,16 @@ namespace GridWorld
                 if (MyMap[square.X, square.Y].HasBeenSeen == false)
                     SquaresNotSeen.Add(square);
                 
-
-            PathSquare Location = SquaresNotSeen[new Random().Next(SquaresNotSeen.Count)];
-
-            FindAndMoveAlongPath(MyWorldState.MyGridSquare.X, MyWorldState.MyGridSquare.Y, Location.X, Location.Y);
+            if (SquaresNotSeen.Count > 0)
+            {
+                PathSquare Location = SquaresNotSeen[new Random().Next(SquaresNotSeen.Count)];
+                FindAndMoveAlongPath(MyWorldState.MyGridSquare.X, MyWorldState.MyGridSquare.Y, Location.X, Location.Y);
+            }
+            else
+            {
+                FindAndMoveAlongPath(MyWorldState.MyGridSquare.X, MyWorldState.MyGridSquare.Y, MyWorldState.MyGridSquare.X, MyWorldState.MyGridSquare.Y);
+            }
+                
         }
 
         /// <summary>
@@ -372,16 +380,16 @@ namespace GridWorld
 
                         if (deltaX == 0 ||  deltaX == 1 || deltaX == -1 )
                         {
-                            if (deltaY > 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Up)
+                            if (deltaY > 0)
                                 reachable = CheckIfEnemyIsReachable(MyWorldState.MyGridSquare.Y, square.Y, square.X, false);
-                            if (deltaY < 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Down)
+                            if (deltaY < 0)
                                 reachable = CheckIfEnemyIsReachable(square.Y, MyWorldState.MyGridSquare.Y, square.X, false);
                         }
                         if (deltaY == 0 || deltaY == 1 || deltaY == -1)
                         {
-                            if (deltaX > 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Right)
+                            if (deltaX > 0)
                                 reachable = CheckIfEnemyIsReachable(MyWorldState.MyGridSquare.X, square.X, square.Y, true);
-                            if (deltaX < 0 && MyWorldState.MyFacing == PlayerWorldState.Facing.Left)
+                            if (deltaX < 0)
                                 reachable = CheckIfEnemyIsReachable(square.X, MyWorldState.MyGridSquare.X, square.Y, true);
                         }
                         if (reachable)
