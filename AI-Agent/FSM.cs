@@ -413,13 +413,13 @@ namespace GridWorld
             if (directionX)
             {
                 for (int x = x1; x <= x2; x++)
-                    if (MyMap[x, y].IsBlocked && MyMap[x,y].GridSq.Player == 0)
+                    if (MyMap[x, y].IsBlocked && MyMap[x, y].GridSq.Player == 0)
                         return false;
             }
             else
             {
                 for (int x = x1; x <= x2; x++)
-                    if (MyMap[y, x].IsBlocked && MyMap[x, y].GridSq.Player == 0)
+                    if (MyMap[y, x].IsBlocked && MyMap[y, x].GridSq.Player == 0)
                         return false;
             }
             
